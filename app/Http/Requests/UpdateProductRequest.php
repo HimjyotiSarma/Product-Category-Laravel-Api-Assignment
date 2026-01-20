@@ -11,7 +11,7 @@ class UpdateProductRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return false;
+        return true;
     }
 
     /**
@@ -22,7 +22,11 @@ class UpdateProductRequest extends FormRequest
     public function rules(): array
     {
         return [
-            //
+            'name' => ['sometimes', 'string', 'max:255'],
+            'price' => ['sometimes', 'numeric', 'min:0'],
+            'category_id' => ['sometimes', 'exists:categories,id'],
+            'stock' => ['sometimes', 'integer', 'min:0'],
+            'status' => ['sometimes', 'in:active,inactive'],
         ];
     }
 }

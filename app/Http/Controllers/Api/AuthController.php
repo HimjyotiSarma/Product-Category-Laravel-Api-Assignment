@@ -9,6 +9,8 @@ use App\Http\Requests\LoginRequest;
 use App\Http\Requests\RegisterRequest;
 use App\Http\Resources\UserResource;
 use App\Models\User;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Support\Facades\Auth;
 use DB;
 use Illuminate\Http\Request;
@@ -58,6 +60,21 @@ class AuthController extends Controller
             ],
         ]);
     }
+
+    /**
+     * Logout the authenticated user by revoking the current access token.
+     * @return JsonResponse
+     */
+    public function logout(Request $request)
+    {
+        $request->user()->tokens()->delete();
+        return response()->json([
+            'status' => true,
+            'message' => 'User logged out successfully',
+        ]);
+    }
+
+
     /**
      * Display a listing of the resource.
      */
