@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class StoreProductRequest extends FormRequest
 {
@@ -22,11 +23,19 @@ class StoreProductRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => 'required|string|max:255',
+            'name' => ['required', 'string', 'max:255', Rule::unique('products', 'name')->where(function ($query) {
+                return $query->where('category_id', $this->category_id);
+            })],
             'price' => 'required|numeric|min:0',
             'category_id' => 'required|exists:categories,id',
             'stock' => 'required|integer|min:0',
             'status' => 'required|in:active,inactive',
+        ];
+    }
+    public function messages(): array
+    {
+        return [
+            'name.unique' => 'The product name must be unique within the selected category.',
         ];
     }
 }

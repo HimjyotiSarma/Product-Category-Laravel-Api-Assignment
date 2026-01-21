@@ -76,12 +76,18 @@ class ProductController extends Controller
      */
     public function update(UpdateProductRequest $request, Product $product)
     {
-        $product->update($request->validated());
-        $product->load('category');
+        $product->fill($request->validated());
 
-        return ProductResource::make($product)->additional([
+        if($product->isDirty()) {
+            $product->save();
+            $message = 'Product updated successfully';
+        }else{
+            $message = 'No changes detected';
+        }
+
+        return ProductResource::make($product->load('category'))->additional([
             'status' => true,
-            'message' => 'Product updated successfully',
+            'message' => $message,
         ]);
     }
 

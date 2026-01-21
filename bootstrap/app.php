@@ -1,5 +1,6 @@
 <?php
 
+use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -18,9 +19,9 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
         // Enable the ForceJsonResponse middleware for API routes only if needed
-        // $middleware->api(prepend: [
-        //     App\Http\Middleware\ForceJsonResponse::class,
-        // ]);
+        $middleware->api(prepend: [
+            App\Http\Middleware\ForceJsonResponse::class,
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->render(function (AuthenticationException $e, Request $request) {
@@ -28,7 +29,18 @@ return Application::configure(basePath: dirname(__DIR__))
                 return response()->json([
                     'status' => false,
                     'message' => 'Unauthenticated',
+                    'errors' => !app()->isProduction() ? 'Invalid Authorization Header :'. $e->getMessage() : 'You are not logged in', 
                 ], 401);
+            }
+        });
+
+        $exceptions->render(function (AuthorizationException $e, Request $request) {
+            if ($request->is('api/*') || $request->expectsJson()) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'Unauthorized',
+                    'errors' => !app()->isProduction() ? $e->getMessage() : 'You are not authorized',
+                ], 403);
             }
         });
 
@@ -47,6 +59,7 @@ return Application::configure(basePath: dirname(__DIR__))
                 return response()->json([
                     'status' => false,
                     'message' => 'Resource not found',
+                    'errors' => !app()->isProduction() ? $e->getMessage() : 'The requested resource was not found',
                 ], 404);
             }
         });
@@ -55,6 +68,7 @@ return Application::configure(basePath: dirname(__DIR__))
                 return response()->json([
                     'status' => false,
                     'message' => 'Something went wrong',
+                    'errors' => !app()->isProduction() ? $e->getMessage() : 'An unexpected error occurred',
                 ], 500);
             }
         });

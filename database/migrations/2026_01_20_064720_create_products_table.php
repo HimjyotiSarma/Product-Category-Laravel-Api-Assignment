@@ -20,6 +20,8 @@ return new class extends Migration
             $table->enum('status', ['active', 'inactive'])->default('active');
             $table->softDeletes();
             $table->timestamps();
+
+            $table->unique(['name', 'category_id'], 'unique_product_name');
         });
     }
 
